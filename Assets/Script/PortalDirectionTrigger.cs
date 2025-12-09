@@ -18,9 +18,7 @@ public class PortalDirectionTrigger : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
 
-        Debug.Log("Collided!");
-
-        Debug.Log($"Check1: Collided with {other.name}, Layer: {other.gameObject.layer}, Enabled: {other.enabled}");
+        Debug.Log("Collided!撞了1!Check1: Collided with {other.name}, Layer: {other.gameObject.layer}, Enabled: {other.enabled}");
 
 
         if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
@@ -28,7 +26,7 @@ public class PortalDirectionTrigger : MonoBehaviour
             {
             Vector3 dir = (other.transform.position - transform.position).normalized;
             float dot = Vector3.Dot(dir, transform.forward);
-            Debug.Log($"撞了!");
+            Debug.Log($"撞了2!");
 
             if (dot > 0)
             {

@@ -25,6 +25,7 @@ public class HandshakeManager : MonoBehaviour
     public float portalGrowDuration = 30000f;
     public Vector3 portalFinalScale = Vector3.one;
 
+
     [Header("Debug")]
     public bool showDebugInfo = true;
     public bool showDebugGizmos = true;
@@ -36,6 +37,8 @@ public class HandshakeManager : MonoBehaviour
     private float handshakeTimer = 0f;
     private GameObject currentPortal;
     private bool portalSpawned = false;
+    private Coroutine growPortalCoroutine;
+
 
     void Update()
     {
@@ -102,12 +105,12 @@ public class HandshakeManager : MonoBehaviour
         {
             // 获取手掌位置（从骨骼）
              leftPos = GetHandPalmPosition(leftSkeleton);
-            Debug.Log($"左手手掌！");
+            //Debug.Log($"左手手掌！");
         }
         if (leftSkeleton != null)
         {
             rightPos = GetHandPalmPosition(rightSkeleton);
-            Debug.Log($"右手手掌！");
+            //Debug.Log($"右手手掌！");
         }
 
         // 如果位置无效，跳过
@@ -173,7 +176,7 @@ public class HandshakeManager : MonoBehaviour
 
             if (toHead.magnitude > 0.01f)
             {
-                // Portal面向用户 - 不知道为啥就是方向反了，乘了个-1
+                // Portal facing the user - 不知道为啥就是方向反了，乘了个-1
                 portalRot = Quaternion.LookRotation(toHead.normalized*-1, Vector3.up);
                 Debug.Log("Portal面向用户");
             }
@@ -200,9 +203,15 @@ public class HandshakeManager : MonoBehaviour
         if (showDebugInfo)
             Debug.Log("Portal已生成！");
 
-        // 生长动画
-        StartCoroutine(GrowPortal(currentPortal));
+        //// 生长动画
+        //StartCoroutine(GrowPortal(currentPortal));
+        // ⭐修改：记录协程 handle
+        growPortalCoroutine = StartCoroutine(GrowPortal(currentPortal));
+
     }
+
+
+
 
     IEnumerator GrowPortal(GameObject portal)
     {
@@ -213,6 +222,8 @@ public class HandshakeManager : MonoBehaviour
 
         while (time < portalGrowDuration)
         {
+
+            if (portal == null) yield break;  // ⭐修改：运行中被 Destroy 时停止
             time += Time.deltaTime;
             float t = time / portalGrowDuration;
 
@@ -225,7 +236,8 @@ public class HandshakeManager : MonoBehaviour
             yield return null;
         }
 
-        portal.transform.localScale = portalFinalScale;
+        if (portal != null)  // ⭐修改：最后保护
+            portal.transform.localScale = portalFinalScale;
     }
 
     void CheckResetInput()
@@ -238,6 +250,14 @@ public class HandshakeManager : MonoBehaviour
 
     public void ResetPortal()
     {
+        // ⭐修改：停止协程，防止协程访问已被销毁的 portal
+        if (growPortalCoroutine != null)
+        {
+            StopCoroutine(growPortalCoroutine);
+            growPortalCoroutine = null;
+        }
+
+
         if (currentPortal != null)
             Destroy(currentPortal);
 
